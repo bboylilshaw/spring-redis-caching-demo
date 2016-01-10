@@ -1,0 +1,9 @@
+### Gradle template
+build/
+
+### OSX template
+.DS_Store
+
+### JetBrains template
+*.iml
+.idea/
