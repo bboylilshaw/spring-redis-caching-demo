@@ -1,5 +1,7 @@
 ### Gradle template
 build/
+.gradle/
+gradle.properties
 
 ### OSX template
 .DS_Store
