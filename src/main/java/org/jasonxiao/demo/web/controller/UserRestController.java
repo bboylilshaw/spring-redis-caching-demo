@@ -69,9 +69,21 @@ public class UserRestController {
     public ResponseEntity<User> updateUser(@PathVariable Long id, @RequestBody User user) {
         LOGGER.info("update user...");
 
-        userService.update(id, user);
+        User updatedUser = userService.update(id, user);
 
-        return new ResponseEntity<>(user, HttpStatus.OK);
+        return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+    }
+
+    @RequestMapping(
+            value = "/api/user/{id}",
+            method = RequestMethod.DELETE
+    )
+    public ResponseEntity<User> deleteUser(@PathVariable Long id) {
+        LOGGER.info("delete user...");
+
+        userService.delete(id);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
 }

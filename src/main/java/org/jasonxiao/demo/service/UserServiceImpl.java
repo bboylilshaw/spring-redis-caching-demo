@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -52,11 +53,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict("user")
     public void delete(Long id) {
         userRepository.delete(id);
     }
 
     @Override
+    @CacheEvict(cacheNames = {"all_users", "user"}, allEntries = true)
     public void evictCache() {
         LOGGER.info("Evicted all cache!");
     }
