@@ -2,22 +2,22 @@ package org.jasonxiao.demo.service;
 
 import org.jasonxiao.demo.model.User;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * Created by Jason on 1/10/16.
+ * @author Jason Xiao
  */
 public interface UserService {
 
-    Collection<User> findAll();
+    List<User> getAllUsers();
 
-    User findOne(Long id);
+    User getUser(Long id);
 
-    User create(User user);
+    User addUser(User user);
 
-    User update(Long id, User user);
+    User updateUser(Long id, User user);
 
-    void delete(Long id);
+    void deleteUser(Long id);
 
     void evictCache();
 

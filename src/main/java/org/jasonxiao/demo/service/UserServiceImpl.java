@@ -9,49 +9,55 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * Created by Jason on 1/10/16.
+ * @author Jason Xiao
  */
 @Service
-@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+@Transactional
 public class UserServiceImpl implements UserService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(UserServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
+
+    private final UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    public UserServiceImpl(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
-    @Cacheable(value = "all_users")
-    public Collection<User> findAll() {
+    @Cacheable(cacheNames = "users", key = "'all.users'")
+    public List<User> getAllUsers() {
         return userRepository.findAll();
     }
 
     @Override
-    @Cacheable(value = "user")
-    public User findOne(Long id) {
+    @Cacheable(cacheNames = "users", key = "#id")
+    public User getUser(Long id) {
+        logger.info("Retrieve user from db");
         return userRepository.findOne(id);
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
-    public User create(User user) {
-        LOGGER.info("creating user");
+    @CacheEvict(cacheNames = "users", key = "'all.users'")
+//    @Transactional(propagation = Propagation.REQUIRES_NEW) // even this is set as REQUIRES_NEW, if outer tx fail, cache change will not apply
+    public User addUser(User user) {
+        logger.info("Save user to db");
         return userRepository.save(user);
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
-    @CachePut(value = "user", key = "#id")
-    public User update(Long id, User user) {
-        Assert.notNull(id);
+    @CachePut(cacheNames = "users", key = "#id")
+    @CacheEvict(cacheNames = "users", key = "'all.users'")
+    public User updateUser(Long id, User user) {
+        Assert.notNull(id, "id cannot be null");
         User toBeUpdated = userRepository.getOne(id);
         BeanUtils.copyProperties(user, toBeUpdated, "id");
 
@@ -60,15 +66,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = false)
-    @CacheEvict("user")
-    public void delete(Long id) {
+    @Caching(evict = {
+            @CacheEvict(cacheNames = "users", key = "#id"),
+            @CacheEvict(cacheNames = "users", key = "'all.users'"),
+    })
+    public void deleteUser(Long id) {
+        logger.info("Deleting user from db");
         userRepository.delete(id);
     }
 
     @Override
-    @CacheEvict(cacheNames = {"all_users", "user"}, allEntries = true)
+    @CacheEvict(cacheNames = "users", allEntries = true)
     public void evictCache() {
-        LOGGER.info("Evicted all cache!");
+        logger.info("Evicted all user cache!");
     }
 }
